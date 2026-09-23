@@ -108,13 +108,43 @@
   .task .xp { color: var(--accent-2); font-size: 12px; font-weight: 600; }
   .readonly .task input { pointer-events: none; opacity: .5; }
 
+  /* Reward card */
+  .reward-card.unlocked {
+    border-color: var(--green);
+    box-shadow: 0 0 0 1px rgba(52,211,153,.25) inset;
+  }
+  .reward-head { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+  .reward-plate {
+    flex-shrink: 0; width: 46px; height: 46px; border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    background: var(--panel-2); border: 1px solid var(--border);
+    color: var(--muted); transition: color .3s ease, border-color .3s ease;
+  }
+  .reward-card.unlocked .reward-plate { color: var(--green); border-color: rgba(52,211,153,.5); }
+  .reward-label {
+    color: var(--muted); font-size: 11px; letter-spacing: .08em;
+    text-transform: uppercase; font-weight: 600;
+  }
+  .reward-title { font-size: 15px; font-weight: 700; margin-top: 2px; }
+  .reward-card.unlocked .reward-title { color: var(--green); }
+
+  /* Calendar legend */
+  .cal-legend {
+    display: flex; gap: 16px; margin-top: 12px;
+    color: var(--muted); font-size: 11px;
+  }
+  .cal-legend span { display: inline-flex; align-items: center; gap: 6px; }
+  .swatch { width: 12px; height: 12px; border-radius: 3px; display: inline-block; border: 1px solid var(--border); }
+  .sw-empty { background: var(--panel-2); }
+  .sw-partial { background: rgba(139,92,246,.12); border-color: rgba(139,92,246,.45); }
+  .sw-complete { background: rgba(139,92,246,.35); border-color: var(--accent); }
+
   /* Streaks */
   .streaks { display: flex; gap: 12px; margin-bottom: 16px; }
   .streak-box {
     flex: 1; background: var(--panel-2); border: 1px solid var(--border);
     border-radius: 10px; padding: 14px; text-align: center;
   }
-  .streak-box .fire { color: var(--accent-2); font-size: 18px; }
   .streak-box .num { font-size: 22px; font-weight: 700; margin: 2px 0; }
   .streak-box .lbl { color: var(--muted); font-size: 11px; }
 
@@ -148,7 +178,8 @@
     border-radius: 8px; display: flex; align-items: center; justify-content: center;
     font-size: 12px; color: var(--muted); position: relative;
   }
-  .cal .cell.done { background: rgba(139,92,246,.28); border-color: var(--accent); color: var(--text); }
+  .cal .cell.partial { background: rgba(139,92,246,.12); border-color: rgba(139,92,246,.45); color: var(--text); }
+  .cal .cell.complete { background: rgba(139,92,246,.35); border-color: var(--accent); color: var(--text); }
   .cal .cell.today { outline: 2px solid var(--accent-2); outline-offset: -1px; color: var(--text); }
   .cal .cell.selected { border-color: var(--accent-2); box-shadow: 0 0 0 1px var(--accent-2) inset; color: var(--text); }
   .cal .cell.future { opacity: .45; }
@@ -212,9 +243,24 @@
     <div id="taskList"></div>
   </div>
 
-  <!-- Weekly -->
-  <div class="card">
-    <div class="section-label">Weekly Progress — Meal out at 600 XP</div>
+  <!-- Weekly / Reward -->
+  <div class="card reward-card" id="rewardCard">
+    <div class="reward-head">
+      <span class="reward-plate" aria-hidden="true">
+        <!-- plate + cutlery, tuned to the dark/purple aesthetic -->
+        <svg width="34" height="34" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="12" cy="12" r="7.25" stroke="currentColor" stroke-width="1.3"/>
+          <circle cx="12" cy="12" r="3.4" stroke="currentColor" stroke-width="1.1" opacity=".7"/>
+          <path d="M3 4.2v4.1c0 .9.55 1.55 1.3 1.75V20" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
+          <path d="M4.3 4.2v3.4M5.6 4.2v3.4" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/>
+          <path d="M20 4.2c-1.4 0-2.2 1.5-2.2 3.4 0 1.3.7 2 1.5 2.2V20" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
+        </svg>
+      </span>
+      <div class="reward-text">
+        <div class="reward-label">Weekly Milestone</div>
+        <div class="reward-title" id="rewardTitle">Unlock a meal out — reach 600 XP</div>
+      </div>
+    </div>
     <div class="bar green"><span id="weekBar"></span></div>
     <div class="sub" id="weekSub">0 / 600 XP this week</div>
   </div>
@@ -223,12 +269,10 @@
   <div class="card">
     <div class="streaks">
       <div class="streak-box">
-        <div class="fire">🔥</div>
         <div class="num" id="curStreak">0</div>
         <div class="lbl">Current Streak</div>
       </div>
       <div class="streak-box">
-        <div class="fire">🔥</div>
         <div class="num" id="bestStreak">0</div>
         <div class="lbl">Best Streak</div>
       </div>
@@ -242,6 +286,11 @@
       <span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span><span>S</span>
     </div>
     <div class="cal" id="calendar"></div>
+    <div class="cal-legend">
+      <span><i class="swatch sw-empty"></i> Missed</span>
+      <span><i class="swatch sw-partial"></i> Partial</span>
+      <span><i class="swatch sw-complete"></i> All done</span>
+    </div>
   </div>
 </div>
 
@@ -327,10 +376,21 @@ function dayXP(key) {
   if (!day) return 0;
   return TASKS.reduce((sum, t) => sum + (day[t.id] ? t.xp : 0), 0);
 }
-function dayComplete(key) {
+function dayCount(key) {
   const day = data.days[key];
-  if (!day) return false;
-  return TASKS.some(t => day[t.id]); // "did something" counts for the chain
+  if (!day) return 0;
+  return TASKS.reduce((n, t) => n + (day[t.id] ? 1 : 0), 0);
+}
+// Streak rule: a day counts if AT LEAST ONE task is done.
+function dayComplete(key) {
+  return dayCount(key) > 0;
+}
+// Three visual states for the calendar.
+function dayStatus(key) {
+  const n = dayCount(key);
+  if (n === 0) return "empty";
+  if (n === TASKS.length) return "complete";
+  return "partial";
 }
 
 /* ---------- auth ---------- */
@@ -441,13 +501,18 @@ function render() {
     list.appendChild(row);
   });
 
-  // weekly
+  // weekly / reward milestone
   const wxp = weeklyXP();
+  const unlocked = wxp >= WEEKLY_GOAL;
   document.getElementById("weekBar").style.width =
     Math.min(100, wxp / WEEKLY_GOAL * 100) + "%";
-  document.getElementById("weekSub").textContent =
-    wxp + " / " + WEEKLY_GOAL + " XP this week" +
-    (wxp >= WEEKLY_GOAL ? " 🎉 Meal out unlocked!" : "");
+  document.getElementById("rewardCard").classList.toggle("unlocked", unlocked);
+  document.getElementById("rewardTitle").textContent = unlocked
+    ? "Milestone reached — meal out unlocked!"
+    : "Unlock a meal out — reach " + WEEKLY_GOAL + " XP";
+  document.getElementById("weekSub").textContent = unlocked
+    ? wxp + " / " + WEEKLY_GOAL + " XP · reward unlocked this week"
+    : wxp + " / " + WEEKLY_GOAL + " XP · " + (WEEKLY_GOAL - wxp) + " XP to unlock";
 
   // streaks
   const { cur, best } = computeStreaks();
@@ -480,7 +545,8 @@ function renderCalendar() {
     const key = ymd(new Date(year, month, d));
     const c = document.createElement("div");
     let cls = "cell clickable";
-    if (dayComplete(key)) cls += " done";
+    const status = dayStatus(key);
+    if (status !== "empty") cls += " " + status; // "partial" or "complete"
     if (key === todayKey) cls += " today";
     if (key === selectedKey) cls += " selected";
     if (parseKey(key) > today && key !== todayKey) cls += " future";

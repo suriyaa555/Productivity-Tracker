@@ -10,9 +10,12 @@ A personal, gamified habit tracker — turn your daily routine into an XP-earnin
 
 - **Daily tasks with XP rewards** — Cardio, Weightlifting, Coursera, Job Applying, DSA/LeetCode.
 - **Levels & XP bar** — earn 300 XP per level.
-- **Weekly goal** — hit **600 XP in a week** to unlock your "meal out" reward 🎉.
-- **Streaks** — current streak and best streak, so you *don't break the chain*.
-- **Calendar view** — month-by-month grid (◀ ▶ to browse) showing which days you stayed on track.
+- **Weekly milestone** — reach **600 XP in a week** to *unlock* a "meal out" reward, shown with a plate-and-cutlery milestone card.
+- **Streaks** — current streak and best streak, so you *don't break the chain*. A day keeps your streak alive if you complete **at least one** task.
+- **Calendar view** — month-by-month grid (◀ ▶ to browse) with three states per day:
+  - **Missed** (grey) — nothing done
+  - **Partial** (faint purple) — some tasks done
+  - **All done** (solid purple) — every task completed
 - **Public read-only + private editing** — anyone can view your progress; only you (after logging in) can check off tasks.
 - **Autosaved login** — once you log in on a device/browser, it won't ask again.
 - **Offline & private** — all progress is stored in your browser's `localStorage`.
