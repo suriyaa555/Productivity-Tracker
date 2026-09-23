@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Productivity Quest</title>
+<style>
+  :root {
+    --bg: #0e0e13;
+    --panel: #17171f;
+    --panel-2: #1d1d27;
+    --border: #2a2a36;
+    --text: #e7e7ef;
+    --muted: #8a8a99;
+    --accent: #8b5cf6;
+    --accent-2: #a78bfa;
+    --green: #34d399;
+    --track: #262633;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    font-size: 14px;
+    line-height: 1.4;
+  }
+  .wrap {
+    max-width: 560px;
+    margin: 0 auto;
+    padding: 24px 16px 60px;
+  }
+
+  /* Header */
+  .app-header { margin-bottom: 18px; }
+  .title {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 22px; font-weight: 700; margin: 0;
+  }
+  .title .emoji { font-size: 22px; }
+  .cats {
+    color: var(--muted);
+    font-size: 12px;
+    margin-top: 4px;
+    display: flex; flex-wrap: wrap; gap: 12px;
+  }
+
+  /* Auth bar */
+  .authbar {
+    display: flex; justify-content: flex-end; align-items: center;
+    gap: 10px; margin-bottom: 14px; font-size: 12px;
+  }
+  .authbar .who { color: var(--muted); }
+  .btn {
+    background: var(--accent); color: #fff; border: none;
+    padding: 6px 14px; border-radius: 8px; font-size: 12px;
+    font-weight: 600; cursor: pointer;
+  }
+  .btn.ghost {
+    background: transparent; border: 1px solid var(--border); color: var(--text);
+  }
+  .btn:hover { filter: brightness(1.08); }
+
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 16px;
+  }
+
+  /* Level card */
+  .lvl-badge {
+    display: inline-block; background: var(--accent);
+    color: #fff; font-weight: 700; font-size: 12px;
+    padding: 4px 12px; border-radius: 999px; margin-bottom: 12px;
+  }
+  .bar {
+    height: 8px; background: var(--track); border-radius: 999px; overflow: hidden;
+  }
+  .bar > span {
+    display: block; height: 100%;
+    background: linear-gradient(90deg, var(--accent), var(--accent-2));
+    width: 0%; transition: width .35s ease;
+  }
+  .bar.green > span { background: linear-gradient(90deg, var(--green), #6ee7b7); }
+  .sub { color: var(--muted); font-size: 12px; margin-top: 8px; }
+
+  /* Section label */
+  .section-label {
+    color: var(--muted); font-size: 11px; letter-spacing: .08em;
+    text-transform: uppercase; font-weight: 600; margin-bottom: 12px;
+  }
+
+  /* Tasks */
+  .task {
+    display: flex; align-items: center; gap: 12px;
+    padding: 10px 0; border-bottom: 1px solid var(--border);
+  }
+  .task:last-child { border-bottom: none; }
+  .task input[type=checkbox] {
+    width: 16px; height: 16px; accent-color: var(--accent);
+    cursor: pointer; flex-shrink: 0;
+  }
+  .task .name { flex: 1; font-weight: 600; }
+  .task.done .name { text-decoration: line-through; color: var(--muted); }
+  .task .xp { color: var(--accent-2); font-size: 12px; font-weight: 600; }
+  .readonly .task input { pointer-events: none; opacity: .5; }
+
+  /* Streaks */
+  .streaks { display: flex; gap: 12px; margin-bottom: 16px; }
+  .streak-box {
+    flex: 1; background: var(--panel-2); border: 1px solid var(--border);
+    border-radius: 10px; padding: 14px; text-align: center;
+  }
+  .streak-box .fire { color: var(--accent-2); font-size: 18px; }
+  .streak-box .num { font-size: 22px; font-weight: 700; margin: 2px 0; }
+  .streak-box .lbl { color: var(--muted); font-size: 11px; }
+
+  /* Calendar */
+  .cal-head {
+    display: flex; align-items: center; justify-content: space-between; margin: 4px 0 10px;
+  }
+  .cal-title {
+    color: var(--muted); font-size: 11px; letter-spacing: .08em;
+    text-transform: uppercase; font-weight: 600;
+  }
+  .cal-nav {
+    background: var(--panel-2); border: 1px solid var(--border); color: var(--text);
+    width: 26px; height: 26px; border-radius: 7px; cursor: pointer; font-size: 11px;
+    display: flex; align-items: center; justify-content: center; padding: 0;
+  }
+  .cal-nav:hover { background: var(--border); }
+  .cal-dow {
+    display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; margin-bottom: 6px;
+  }
+  .cal-dow span {
+    text-align: center; color: var(--muted); font-size: 10px; font-weight: 600;
+  }
+  .day-note { color: var(--muted); font-size: 12px; margin-bottom: 10px; }
+  .cal {
+    display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px;
+  }
+  .cal .cell {
+    aspect-ratio: 1 / 1;
+    background: var(--panel-2); border: 1px solid var(--border);
+    border-radius: 8px; display: flex; align-items: center; justify-content: center;
+    font-size: 12px; color: var(--muted); position: relative;
+  }
+  .cal .cell.done { background: rgba(139,92,246,.28); border-color: var(--accent); color: var(--text); }
+  .cal .cell.today { outline: 2px solid var(--accent-2); outline-offset: -1px; color: var(--text); }
+  .cal .cell.selected { border-color: var(--accent-2); box-shadow: 0 0 0 1px var(--accent-2) inset; color: var(--text); }
+  .cal .cell.future { opacity: .45; }
+  .cal .cell.clickable { cursor: pointer; }
+  .cal .cell.clickable:hover { border-color: var(--accent-2); }
+  .cal .cell.empty { background: transparent; border: none; }
+
+  /* Login modal */
+  .overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,.6);
+    display: none; align-items: center; justify-content: center; z-index: 50;
+  }
+  .overlay.show { display: flex; }
+  .modal {
+    background: var(--panel); border: 1px solid var(--border);
+    border-radius: 14px; padding: 24px; width: 320px;
+  }
+  .modal h2 { margin: 0 0 4px; font-size: 18px; }
+  .modal p { margin: 0 0 16px; color: var(--muted); font-size: 12px; }
+  .modal label { display: block; font-size: 12px; color: var(--muted); margin: 10px 0 4px; }
+  .modal input {
+    width: 100%; padding: 9px 11px; border-radius: 8px;
+    border: 1px solid var(--border); background: var(--panel-2); color: var(--text);
+    font-size: 14px;
+  }
+  .modal .row { display: flex; gap: 8px; margin-top: 18px; }
+  .modal .err { color: #f87171; font-size: 12px; min-height: 16px; margin-top: 8px; }
+  .badge-ro {
+    display: inline-block; font-size: 11px; color: var(--muted);
+    border: 1px solid var(--border); border-radius: 999px; padding: 2px 10px;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="authbar">
+    <span class="who" id="whoami"></span>
+    <button class="btn" id="loginBtn">Log in</button>
+    <button class="btn ghost" id="logoutBtn" style="display:none;">Log out</button>
+  </div>
+
+  <div class="app-header">
+    <h1 class="title"><span class="emoji">🎮</span> Productivity Quest</h1>
+    <div class="cats">
+      <span>Cardio</span><span>Weightlifting</span><span>Coursera</span>
+      <span>Job Applying</span><span>DSA/LeetCode</span>
+    </div>
+  </div>
+
+  <!-- Level -->
+  <div class="card">
+    <span class="lvl-badge" id="lvlBadge">Lvl 1</span>
+    <div class="bar"><span id="lvlBar"></span></div>
+    <div class="sub" id="lvlSub">0 XP total · 300 XP to next level</div>
+  </div>
+
+  <!-- Selected day tasks -->
+  <div class="card">
+    <div class="section-label" id="todayLabel">Today</div>
+    <div id="dayNote" class="day-note"></div>
+    <div id="taskList"></div>
+  </div>
+
+  <!-- Weekly -->
+  <div class="card">
+    <div class="section-label">Weekly Progress — Meal out at 600 XP</div>
+    <div class="bar green"><span id="weekBar"></span></div>
+    <div class="sub" id="weekSub">0 / 600 XP this week</div>
+  </div>
+
+  <!-- Streaks + Calendar -->
+  <div class="card">
+    <div class="streaks">
+      <div class="streak-box">
+        <div class="fire">🔥</div>
+        <div class="num" id="curStreak">0</div>
+        <div class="lbl">Current Streak</div>
+      </div>
+      <div class="streak-box">
+        <div class="fire">🔥</div>
+        <div class="num" id="bestStreak">0</div>
+        <div class="lbl">Best Streak</div>
+      </div>
+    </div>
+    <div class="cal-head">
+      <button class="cal-nav" id="prevMonth" aria-label="Previous month">◀</button>
+      <div class="cal-title" id="calTitle">Don't break the chain</div>
+      <button class="cal-nav" id="nextMonth" aria-label="Next month">▶</button>
+    </div>
+    <div class="cal-dow">
+      <span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span><span>S</span>
+    </div>
+    <div class="cal" id="calendar"></div>
+  </div>
+</div>
+
+<!-- Login modal -->
+<div class="overlay" id="overlay">
+  <div class="modal">
+    <h2>Log in</h2>
+    <p>Log in to check off tasks. Visitors see a read-only view.</p>
+    <label>Username</label>
+    <input id="userInput" autocomplete="username" />
+    <label>Password</label>
+    <input id="passInput" type="password" autocomplete="current-password" />
+    <div class="err" id="loginErr"></div>
+    <div class="row">
+      <button class="btn" id="doLogin" style="flex:1;">Log in</button>
+      <button class="btn ghost" id="cancelLogin">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* =========================================================
+   Productivity Quest — client-side single-file app
+   NOTE (Option A): credentials below are visible in page
+   source. This is a personal, non-serious tracker. Change
+   the username/password here anytime.
+   ========================================================= */
+const AUTH = {
+  username: "suriyaa8904",
+  // Throwaway password (NOT the one you pasted in chat). Change freely.
+  password: "quest-tracker-2026"
+};
+
+const TASKS = [
+  { id: "cardio",   name: "Cardio (20 min)",     xp: 10 },
+  { id: "weights",  name: "Weightlifting (40 min)", xp: 15 },
+  { id: "coursera", name: "Coursera (2.5 hr)",    xp: 20 },
+  { id: "jobs",     name: "Job Applying (1 hr)",  xp: 15 },
+  { id: "dsa",      name: "DSA / LeetCode (3 hr)", xp: 25 }
+];
+const XP_PER_LEVEL = 300;
+const WEEKLY_GOAL = 600;
+
+/* ---------- storage ---------- */
+const STORE_KEY = "pq_data_v1";
+const SESSION_KEY = "pq_session_v1"; // autosaved login flag
+
+function loadData() {
+  try { return JSON.parse(localStorage.getItem(STORE_KEY)) || {}; }
+  catch { return {}; }
+}
+function saveData(d) { localStorage.setItem(STORE_KEY, JSON.stringify(d)); }
+
+// data shape: { days: { "YYYY-MM-DD": { cardio:true, ... } } }
+let data = loadData();
+if (!data.days) data.days = {};
+
+/* ---------- date helpers ---------- */
+function ymd(d) {
+  return d.getFullYear() + "-" +
+    String(d.getMonth() + 1).padStart(2, "0") + "-" +
+    String(d.getDate()).padStart(2, "0");
+}
+const today = new Date();
+const todayKey = ymd(today);
+
+// UI state
+let selectedKey = todayKey;               // which day's tasks are shown
+let viewMonth = new Date(today.getFullYear(), today.getMonth(), 1); // month shown in calendar
+
+function parseKey(key) {
+  const [y, m, d] = key.split("-").map(Number);
+  return new Date(y, m - 1, d);
+}
+function prettyDate(key) {
+  return parseKey(key).toLocaleDateString(undefined, {
+    weekday: "long", month: "short", day: "numeric", year: "numeric"
+  });
+}
+
+function dayXP(key) {
+  const day = data.days[key];
+  if (!day) return 0;
+  return TASKS.reduce((sum, t) => sum + (day[t.id] ? t.xp : 0), 0);
+}
+function dayComplete(key) {
+  const day = data.days[key];
+  if (!day) return false;
+  return TASKS.some(t => day[t.id]); // "did something" counts for the chain
+}
+
+/* ---------- auth ---------- */
+function isLoggedIn() { return localStorage.getItem(SESSION_KEY) === "1"; }
+function setLoggedIn(v) {
+  if (v) localStorage.setItem(SESSION_KEY, "1");
+  else localStorage.removeItem(SESSION_KEY);
+}
+
+/* ---------- rendering ---------- */
+function totalXP() {
+  return Object.keys(data.days).reduce((sum, k) => sum + dayXP(k), 0);
+}
+function weekKeys() {
+  // Monday-based week containing today
+  const d = new Date(today);
+  const day = (d.getDay() + 6) % 7; // 0 = Monday
+  d.setDate(d.getDate() - day);
+  const keys = [];
+  for (let i = 0; i < 7; i++) {
+    const x = new Date(d); x.setDate(d.getDate() + i);
+    keys.push(ymd(x));
+  }
+  return keys;
+}
+function weeklyXP() {
+  return weekKeys().reduce((sum, k) => sum + dayXP(k), 0);
+}
+function computeStreaks() {
+  // current streak: consecutive days up to today with activity
+  let cur = 0;
+  let cursor = new Date(today);
+  while (dayComplete(ymd(cursor))) {
+    cur++;
+    cursor.setDate(cursor.getDate() - 1);
+  }
+  // best streak across all recorded days
+  const keys = Object.keys(data.days).filter(k => dayComplete(k)).sort();
+  let best = 0, run = 0, prev = null;
+  keys.forEach(k => {
+    if (prev) {
+      const p = new Date(prev), c = new Date(k);
+      const diff = Math.round((c - p) / 86400000);
+      run = diff === 1 ? run + 1 : 1;
+    } else run = 1;
+    best = Math.max(best, run);
+    prev = k;
+  });
+  best = Math.max(best, cur);
+  return { cur, best };
+}
+
+function render() {
+  const ro = !isLoggedIn();
+
+  // auth bar
+  document.getElementById("whoami").textContent = ro ? "" : ("Logged in as " + AUTH.username);
+  document.getElementById("loginBtn").style.display = ro ? "" : "none";
+  document.getElementById("logoutBtn").style.display = ro ? "none" : "";
+
+  // level
+  const total = totalXP();
+  const level = Math.floor(total / XP_PER_LEVEL) + 1;
+  const into = total % XP_PER_LEVEL;
+  const toNext = XP_PER_LEVEL - into;
+  document.getElementById("lvlBadge").textContent = "Lvl " + level;
+  document.getElementById("lvlBar").style.width = (into / XP_PER_LEVEL * 100) + "%";
+  document.getElementById("lvlSub").textContent =
+    total + " XP total · " + toNext + " XP to next level";
+
+  // Editing is allowed ONLY for today, and only when logged in.
+  const isToday = selectedKey === todayKey;
+  const editable = !ro && isToday;
+
+  // day header + note
+  const label = isToday
+    ? "Today — " + prettyDate(selectedKey).toUpperCase()
+    : prettyDate(selectedKey).toUpperCase();
+  document.getElementById("todayLabel").textContent = label;
+
+  const note = document.getElementById("dayNote");
+  if (isToday) {
+    note.textContent = ro ? "Log in to check off today's tasks." : "";
+  } else {
+    note.textContent = "Viewing a past/other day — read-only. Only today's tasks can be changed.";
+  }
+
+  // tasks for the selected day
+  const dayData = data.days[selectedKey] || (data.days[selectedKey] = {});
+  const list = document.getElementById("taskList");
+  list.className = editable ? "" : "readonly";
+  list.innerHTML = "";
+  TASKS.forEach(t => {
+    const checked = !!dayData[t.id];
+    const row = document.createElement("label");
+    row.className = "task" + (checked ? " done" : "");
+    row.innerHTML =
+      '<input type="checkbox" ' + (checked ? "checked" : "") + (editable ? "" : " disabled") + ' />' +
+      '<span class="name">' + t.name + '</span>' +
+      '<span class="xp">+' + t.xp + ' XP</span>';
+    const cb = row.querySelector("input");
+    cb.addEventListener("change", () => {
+      if (!editable) return;
+      dayData[t.id] = cb.checked;
+      saveData(data);
+      render();
+    });
+    list.appendChild(row);
+  });
+
+  // weekly
+  const wxp = weeklyXP();
+  document.getElementById("weekBar").style.width =
+    Math.min(100, wxp / WEEKLY_GOAL * 100) + "%";
+  document.getElementById("weekSub").textContent =
+    wxp + " / " + WEEKLY_GOAL + " XP this week" +
+    (wxp >= WEEKLY_GOAL ? " 🎉 Meal out unlocked!" : "");
+
+  // streaks
+  const { cur, best } = computeStreaks();
+  document.getElementById("curStreak").textContent = cur;
+  document.getElementById("bestStreak").textContent = best;
+
+  // calendar (current month grid, like the screenshot)
+  renderCalendar();
+}
+
+function renderCalendar() {
+  const cal = document.getElementById("calendar");
+  cal.innerHTML = "";
+  const year = viewMonth.getFullYear(), month = viewMonth.getMonth();
+
+  // month title (e.g. "September 2026")
+  document.getElementById("calTitle").textContent =
+    viewMonth.toLocaleDateString(undefined, { month: "long", year: "numeric" });
+
+  const first = new Date(year, month, 1);
+  const startOffset = (first.getDay() + 6) % 7; // Monday-based
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+  for (let i = 0; i < startOffset; i++) {
+    const c = document.createElement("div");
+    c.className = "cell empty";
+    cal.appendChild(c);
+  }
+  for (let d = 1; d <= daysInMonth; d++) {
+    const key = ymd(new Date(year, month, d));
+    const c = document.createElement("div");
+    let cls = "cell clickable";
+    if (dayComplete(key)) cls += " done";
+    if (key === todayKey) cls += " today";
+    if (key === selectedKey) cls += " selected";
+    if (parseKey(key) > today && key !== todayKey) cls += " future";
+    c.className = cls;
+    c.textContent = d;
+    // Any day can be clicked to VIEW it; editing is still today-only (handled in render()).
+    c.addEventListener("click", () => {
+      selectedKey = key;
+      render();
+    });
+    cal.appendChild(c);
+  }
+}
+
+/* ---------- login modal ---------- */
+const overlay = document.getElementById("overlay");
+function openLogin() {
+  document.getElementById("loginErr").textContent = "";
+  document.getElementById("userInput").value = "";
+  document.getElementById("passInput").value = "";
+  overlay.classList.add("show");
+}
+function closeLogin() { overlay.classList.remove("show"); }
+
+document.getElementById("loginBtn").addEventListener("click", openLogin);
+document.getElementById("cancelLogin").addEventListener("click", closeLogin);
+document.getElementById("logoutBtn").addEventListener("click", () => {
+  setLoggedIn(false);
+  render();
+});
+document.getElementById("doLogin").addEventListener("click", tryLogin);
+document.getElementById("passInput").addEventListener("keydown", e => {
+  if (e.key === "Enter") tryLogin();
+});
+function tryLogin() {
+  const u = document.getElementById("userInput").value.trim();
+  const p = document.getElementById("passInput").value;
+  if (u === AUTH.username && p === AUTH.password) {
+    setLoggedIn(true);        // autosaved — won't ask again on this browser
+    closeLogin();
+    render();
+  } else {
+    document.getElementById("loginErr").textContent = "Incorrect username or password.";
+  }
+}
+
+/* ---------- calendar navigation ---------- */
+document.getElementById("prevMonth").addEventListener("click", () => {
+  viewMonth = new Date(viewMonth.getFullYear(), viewMonth.getMonth() - 1, 1);
+  render();
+});
+document.getElementById("nextMonth").addEventListener("click", () => {
+  viewMonth = new Date(viewMonth.getFullYear(), viewMonth.getMonth() + 1, 1);
+  render();
+});
+
+/* ---------- init ---------- */
+render();
+</script>
+</body>
+</html>
